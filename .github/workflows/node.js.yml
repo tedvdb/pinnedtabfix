@@ -11,12 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js 14.x
+    - name: Use Node.js 15.x
       uses: actions/setup-node@v1
       with:
-        node-version: 14.x
+        node-version: 15.x
     - run: npm install --dev
-    - run: web-ext build
+    - run: ./node_modules/web-ext/bin/web-ext build
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v2.2.1
       with:
