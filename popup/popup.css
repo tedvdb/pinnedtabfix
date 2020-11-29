@@ -1,3 +1,18 @@
 body {
     margin: 15px;
 }
+
+.imgcontainer {
+    text-align: right;
+}
+
+.favicon {
+    height: 1em;
+    width:  1em;
+}
+
+#refreshicon {
+    height: 2em;
+    width:  2em;
+    display: inline;
+}

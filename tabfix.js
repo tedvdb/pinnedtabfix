@@ -35,6 +35,8 @@ function getRequiredTabInfo(tabs) {
     returnTab['index'] = tab.index
     returnTab['window'] = windowmapping[tab.windowId]
     returnTab['url'] = tab.url
+    returnTab['favicon'] = tab.favIconUrl
+    
 
     returnTabs.push(returnTab)
   }
@@ -44,7 +46,7 @@ function getRequiredTabInfo(tabs) {
 
 // If something went wron fetching pinned tabs
 function onError(error) {
-  console.log(`Pinned Tab Fix - error while fetching tabs: ${error}`)
+  console.error(`Pinned Tab Fix - error while fetching tabs: ${error}`)
 }
 
 // Handle changes on pinned status of the tabs
@@ -84,7 +86,7 @@ async function restorePinnedTabs(tabs) {
   let windows = await browser.windows.getAll({
     windowTypes: ["normal"]
   })
-  console.log(windows)
+  
   for (let tab of tabsToRestore) {
     if (windows[tab.window] == undefined) {
       await browser.windows.create()
@@ -106,6 +108,21 @@ function errorRestore(error) {
   console.log(`Pinned Tab Fix - error while restoring tabs: ${error}`)
 }
 
-let loadingTabs = browser.storage.local.get("tabs");
-loadingTabs.then(restorePinnedTabs, errorRestore);
+// Wait until pinned tabs are done loading, then continue with the restore.
+async function checkIfTabsLoaded() {
+  let loadingTabs = await browser.tabs.query({ pinned: true });
+  for (let tab of loadingTabs) {
+    if (tab.status!="complete") {
+      console.log("Some tabs are still loading. Trying again in 250ms.")
+      setTimeout(checkIfTabsLoaded, 250)
+      return
+    }
+  }
+  console.log("All pinned tabs done loading. Checking if we need to restore something.")
 
+  savedPinnedTabs = browser.storage.local.get("tabs");
+  savedPinnedTabs.then(restorePinnedTabs, errorRestore);
+}
+
+console.log("Starting Pinned Tab Fix...")
+checkIfTabsLoaded()
